@@ -247,7 +247,8 @@ spec:
       containers:
       - name: master
         image: rethinkdb:2.3.5
-        args: [ "-d", "/var/rethinkdb_home" ]
+        command: [ "rethinkdb" ]
+        args: [ "--bind", "all", "-d", "/var/rethinkdb_home" ]
         ports:
         - containerPort: 8080
         - containerPort: 28015
