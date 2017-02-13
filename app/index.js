@@ -9,14 +9,12 @@ var cli = require('cli'),
 
 options = cli.parse({
     host:     [ 'h', 'RethinkDB hostname', 'string', 'localhost' ],
-    port:     [ 'p', 'RethinkDB port', 'int', 8080 ],
+    port:     [ 'p', 'RethinkDB port', 'int', 28015 ],
     action:   [ 'a', 'Action to perform (create, insert, get, delete)', 'string', 'get' ],
     table:    [ 't', 'Table name', 'string', null ],
     datafile: [ 'f', 'RethinkDB datafile', 'string', null ]
 });
 const util = require('util')
-
-console.log(util.inspect(options, {showHidden: false, depth: null}))
 
 var invalidcli = false;
 if(options.table != null) {
@@ -53,7 +51,6 @@ rdb.connect({ host: options.host, port: options.port }, function(err, conn) {
         });
     } else if (options.action == 'insert') {
         fs.readFile(options.datafile, 'utf8', function(err, json) {
-            console.log(json);
             if(err) throw err;
             var data = JSON.parse(json);
             console.log(data);

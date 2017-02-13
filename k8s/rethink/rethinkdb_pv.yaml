@@ -21,6 +21,7 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1beta1
 metadata:
   name: slow
+  namespace: rethinkdb
 provisioner: kubernetes.io/azure-disk
 parameters:
   skuName: Standard_LRS
@@ -62,17 +63,9 @@ spec:
       containers:
       - name: master
         image: rethinkdb:2.3.5
+        args: [ "-d", "/var/rethinkdb_home" ]
         ports:
         - containerPort: 8080
-#        readinessProbe:
-#          httpGet:
-#            path: /login
-#            port: 8080
-#          periodSeconds: 10
-#          timeoutSeconds: 5
-#          successThreshold: 2
-#          failureThreshold: 5
-#        env:
         - containerPort: 28015
         volumeMounts:
         - mountPath: /var/rethinkdb_home
