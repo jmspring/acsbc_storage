@@ -158,11 +158,13 @@ Finally, once a volume claim has been defined, it has to be associated with the 
       containers:
       - name: master
         image: rethinkdb:2.3.5
+        command: [ "rethinkdb" ]
+        args: [ "--bind", "all", "-d", "/data/rethinkdb_home/db" ]
         ports:
         - containerPort: 8080
         - containerPort: 28015
         volumeMounts:
-        - mountPath: /var/rethinkdb_home
+        - mountPath: /data/rethinkdb_home
           name: rethinkdb-home
         resources:
           limits:
@@ -237,8 +239,6 @@ spec:
       labels:
         app: master
     spec:
-      securityContext:
-        fsGroup: 1000
       containers:
       - name: proxy
         image: gcr.io/google_containers/kubectl-amd64:v1.5.2
@@ -248,12 +248,12 @@ spec:
       - name: master
         image: rethinkdb:2.3.5
         command: [ "rethinkdb" ]
-        args: [ "--bind", "all", "-d", "/var/rethinkdb_home" ]
+        args: [ "--bind", "all", "-d", "/data/rethinkdb_home/db" ]
         ports:
         - containerPort: 8080
         - containerPort: 28015
         volumeMounts:
-        - mountPath: /var/rethinkdb_home
+        - mountPath: /data/rethinkdb_home
           name: rethinkdb-home
         resources:
           limits:
