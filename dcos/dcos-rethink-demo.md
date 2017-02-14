@@ -6,6 +6,7 @@ In this demo we will:
 
 - Deploy an DCOS cluster using `acs-engine`
 - Make use of Marathon Attributes to specify the agent that RethinkDB will run on
+- Initialize the managed disks (format and mount)
 - Deploy RethinkDB to the specific agent
 - Interact with RethinkDB
 - Kill the agent and wait and see RethinkDB get redeployed to the same agent
@@ -191,4 +192,88 @@ root@dcos-agent128-154975090:/var/lib/dcos# reboot
 If you look at the node in the DCOS UI, you will note that the screen reflects  the attribute we just added.
 
 ![agent node](https://github.com/jmspring/acsbc_storage/raw/master/dcos/images/dcos-agent-view.png) 
+
+## Set up the Managed Disk
+
+When you deploy a DCOS cluster with pre-allocated managed disks, the disks are not formated or attached.  So, before using them, you need to set that up.  The first managed disk is attached at `/dev/sdc`, so we need to format the disk and make sure it is attached to the VM each time the VM starts.  This is done by using `mkfs.ext4` to format the disk then adding an entry to `/etc/fstab` and then rebooting the VM.  For purposes of this demo, we are mounting the managed disk at `/mnt/managed/0`.
+
+The steps are as follows:
+
+```bash
+sadmin@dcos-agent128-154975090:~$ mkfs.ext4 /dev/sdc
+mke2fs 1.42.13 (17-May-2015)
+Could not open /dev/sdc: Permission denied
+sadmin@dcos-agent128-154975090:~$ sudo !!
+sudo mkfs.ext4 /dev/sdc
+mke2fs 1.42.13 (17-May-2015)
+Discarding device blocks: done                            
+Creating filesystem with 5242880 4k blocks and 1310720 inodes
+Filesystem UUID: 4fd339b5-ad5b-4f01-aff8-43df0316185a
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208, 
+	4096000
+
+Allocating group tables: done                            
+Writing inode tables: done                            
+Creating journal (32768 blocks): done
+Writing superblocks and filesystem accounting information: done   
+sadmin@dcos-agent128-154975090:~$ sudo mkdir -p /mnt/managed/0
+sadmin@dcos-agent128-154975090:~$ sudo su
+root@dcos-agent128-154975090:~$ echo "/dev/sdc                                /mnt/managed/0  ext4    defaults,discard        0 0" >> /etc/fstab"
+root@dcos-agent128-154975090:~$ reboot
+```
+
+Upon reboot, log back in and check the attached disks:
+
+```bash
+sadmin@dcos-agent128-154975090:~$ mount | grep sdc
+/dev/sdc on /mnt/managed/0 type ext4 (rw,relatime,discard,data=ordered)
+```
+
+# Deploying RethinkDB to the agent
+
+In order to deploy RethinkDB, we need to specify the `marathon.json` file for RethinkDB and indicate the attributes that will make sure that RethinkDB is deployed to the node we configured for it.
+
+The `marathon.json` file looks as follows:
+
+```bash
+{
+  "id": "rethinkdb",
+  "cmd": "rethinkdb --bind all -d /data/rethinkdb/db",
+  "cpus": 1,
+  "mem": 8000.0,
+  "instances": 1,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "rethinkdb:2.3.5",
+      "network": "BRIDGE",
+      "portMappings": [
+        { "containerPort": 8080, "hostPort": 0, "protocol": "tcp" },
+        { "containerPort": 28015, "hostPort": 0, "protocol": "tcp"}
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/data/rethinkdb/db",
+        "hostPath": "/mnt/managed/0/rethinkdb",
+        "mode": "RW"
+      }
+    ]
+  },
+  "constraints": [["role", "CLUSTER", "db"]]
+}
+```
+
+Basically, what this config is defining is to run RethnkDB on the node we defined having a `role` of `db` and using the mountpoint we configured.  Again, this mountpoint is static to the node.  One thing to note, we are letting Marathon pick the ports where the container ports are exposed on the host.  Generally, one would use service discovery to figure out these ports.  Since we are just interested in RethinkDB being redeployed to the same node and data being preserved, we will skip that can of worms.
+
+That said, what ports is the service using?  Logging into the agent node and using `docker ps`, we can find out:
+
+```bash
+sadmin@dcos-agent128-154975090:~$ sudo docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS                                                        NAMES
+cd5dcd233cc1        rethinkdb:2.3.5     "/bin/sh -c 'rethinkd"   About a minute ago   Up About a minute   29015/tcp, 0.0.0.0:6724->8080/tcp, 0.0.0.0:6725->28015/tcp   mesos-5e7a265e-b477-47cf-9e30-e198de501f0e-S5.df79479a-43e5-4678-93ec-1caee739cf3e
+```
+
+So, port 28015 is mapped to host port 6725 and port 8080 is mapped to host port 6724.
 
