@@ -491,7 +491,7 @@ Connection to 10.0.0.6 closed by remote host.
 
 The host should come back up shortly.  Looking at the Marathon UI for the RethinkDB service again, one sees that it is on the same node, but with different ports.
 
-![rethink-after--reboot](https://github.com/jmspring/acsbc_storage/raw/master/dcos/images/rethink-afger-reboot.png)
+![rethink-after-reboot](https://github.com/jmspring/acsbc_storage/raw/master/dcos/images/rethink-after-reboot.png)
 
 If you look closely, you can see the ports have changed, but using `docker ps`, we can get a better view:
 
