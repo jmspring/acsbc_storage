@@ -188,4 +188,7 @@ root@dcos-agent128-154975090:/var/lib/dcos# echo "MESOS_ATTRIBUTES=role:db" > /v
 root@dcos-agent128-154975090:/var/lib/dcos# reboot
 ```
 
-If you look at the node in the DCOS UI, you will note that the ![screen for the node](https://github.com/jmspring/acsbc_storage/raw/master/dcos/images/dcos-agent-view.png) shows the attribute we just added.
+If you look at the node in the DCOS UI, you will note that the screen reflects  the attribute we just added.
+
+![agent node](https://github.com/jmspring/acsbc_storage/raw/master/dcos/images/dcos-agent-view.png) 
+
