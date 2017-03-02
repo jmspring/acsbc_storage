@@ -422,6 +422,30 @@ Options:
   -f, --datafile STRING  RethinkDB datafile
 ```
 
+In order to use the app, it is assumed that you have NodeJS installed.  Also, in order to actually use it, the required modules need to be installed as well.  To do that:
+
+```bash
+jims@azhat:~/src/github/acsbc_storage/app$ npm install .
+rethink_test.js@0.0.1 /home/jims/src/github/acsbc_storage/app
+├─┬ cli@1.0.1 
+│ ├── exit@0.1.2 
+│ └─┬ glob@7.1.1 
+│   ├── fs.realpath@1.0.0 
+│   ├─┬ inflight@1.0.6 
+│   │ └── wrappy@1.0.2 
+│   ├── inherits@2.0.3 
+│   ├─┬ minimatch@3.0.3 
+│   │ └─┬ brace-expansion@1.1.6 
+│   │   ├── balanced-match@0.4.2 
+│   │   └── concat-map@0.0.1 
+│   ├── once@1.4.0 
+│   └── path-is-absolute@1.0.1 
+└─┬ rethinkdb@2.3.3 
+  └── bluebird@2.11.0 
+
+npm WARN rethink_test.js@0.0.1 No repository field.
+```
+
 So, using the app, let's interact with RethinkDB.  First, create a table named `weather`:
 
 ```bash
